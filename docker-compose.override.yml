@@ -1,0 +1,31 @@
+version: '3'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - gateway
+
+  traefik:
+    command:
+      - --accessLog=true
+      - --providers.file.directory=/storage/config
+      - --providers.file.watch=true
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.constraints=Label(`traefik.constraint-label-stack`,`appwrite`)
+      - --entrypoints.appwrite_web.address=:80
+      - --entrypoints.appwrite_websecure.address=:443
+      - --entrypoints.appwrite_web.forwardedHeaders.trustedIPs=162.55.42.107
+      - --entrypoints.appwrite_websecure.forwardedHeaders.trustedIPs=162.55.42.107
+networks:
+  gateway:
+    name: npm_gateway
+    external: true
